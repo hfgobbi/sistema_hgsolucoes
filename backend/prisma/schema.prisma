@@ -1,0 +1,232 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+  binaryTargets = ["native", "debian-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// =============================================
+// PLANO DE CONTAS
+// =============================================
+model PlanoContas {
+  id        String   @id @default(cuid())
+  codigo    String   @unique
+  nome      String
+  natureza  String   // 'D' ou 'C'
+  grupo     String   // MATERIAL, SERVIÇOS, ADM, CARRO, MKT, DESP_CASA, RECEITAS
+  tipo      String?  // Subcategoria específica
+  ativo     Boolean  @default(true)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relacionamentos
+  lancamentosDebito  Lancamento[] @relation("ContaDebito")
+  lancamentosCredito Lancamento[] @relation("ContaCredito")
+  contasPagar        ContaPagar[]
+
+  @@map("plano_contas")
+}
+
+// =============================================
+// CARTÕES E CONTAS BANCÁRIAS
+// =============================================
+model CartaoContas {
+  id                 String   @id @default(cuid())
+  nome               String
+  tipo               String   // 'cartao', 'conta_corrente', 'poupanca'
+  vencimentoDia      Int?     @map("vencimento_dia")
+  codigoVencimento   String?  @map("codigo_vencimento") // D5, D10, D15, etc.
+  limiteCredito      Decimal? @map("limite_credito") @db.Decimal(12, 2)
+  ativo              Boolean  @default(true)
+  createdAt          DateTime @default(now()) @map("created_at")
+
+  // Relacionamentos
+  lancamentos Lancamento[]
+  contasPagar ContaPagar[]
+
+  @@map("cartoes_contas")
+}
+
+// =============================================
+// FONTES DE RENDA
+// =============================================
+model FonteRenda {
+  id         String   @id @default(cuid())
+  nome       String
+  descricao  String?
+  tipo       String   @default("OUTRAS") // 'producao', 'aplicacao', 'outras'
+  valorMensal Decimal? @db.Decimal(12, 2) @map("valor_mensal")
+  cor        String?
+  ativo      Boolean  @default(true)
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  // Relacionamentos
+  lancamentos    Lancamento[]
+  contasReceber  ContaReceber[]
+
+  @@map("fontes_renda")
+}
+
+// =============================================
+// LANÇAMENTOS CONTÁBEIS
+// =============================================
+model Lancamento {
+  id               String        @id @default(cuid())
+  data             DateTime
+  descricao        String
+  valor            Decimal       @db.Decimal(12, 2)
+  contaDebitoId    String?       @map("conta_debito_id")
+  contaCreditoId   String?       @map("conta_credito_id")
+  cartaoContaId    String?       @map("cartao_conta_id")
+  fonteRendaId     String?       @map("fonte_renda_id")
+  tipoLancamento   String        @map("tipo_lancamento") // 'receita', 'despesa', 'transferencia'
+  categoria        String?       // Para agrupamento (MATERIAL, SERVIÇOS, etc.)
+  observacoes      String?
+  createdAt        DateTime      @default(now()) @map("created_at")
+  updatedAt        DateTime      @updatedAt @map("updated_at")
+
+  // Relacionamentos
+  contaDebito  PlanoContas?  @relation("ContaDebito", fields: [contaDebitoId], references: [id])
+  contaCredito PlanoContas?  @relation("ContaCredito", fields: [contaCreditoId], references: [id])
+  cartaoConta  CartaoContas? @relation(fields: [cartaoContaId], references: [id])
+  fonteRenda   FonteRenda?   @relation(fields: [fonteRendaId], references: [id])
+
+  @@map("lancamentos")
+}
+
+// =============================================
+// CONTAS A PAGAR
+// =============================================
+model ContaPagar {
+  id              String        @id @default(cuid())
+  descricao       String
+  categoria       String        // MATERIAL, SERVIÇOS, ADM, CARRO, MKT, DESP_CASA
+  valor           Decimal       @db.Decimal(12, 2)
+  vencimento      DateTime
+  cartaoContaId   String?       @map("cartao_conta_id")
+  contaId         String?       @map("conta_id")
+  status          String        @default("pendente") // 'pendente', 'pago', 'vencido'
+  dataPagamento   DateTime?     @map("data_pagamento")
+  valorPago       Decimal?      @map("valor_pago") @db.Decimal(12, 2)
+  observacoes     String?
+  createdAt       DateTime      @default(now()) @map("created_at")
+  updatedAt       DateTime      @updatedAt @map("updated_at")
+
+  // Relacionamentos
+  cartaoConta CartaoContas? @relation(fields: [cartaoContaId], references: [id])
+  conta       PlanoContas?  @relation(fields: [contaId], references: [id])
+
+  @@map("contas_pagar")
+}
+
+// =============================================
+// CONTAS A RECEBER
+// =============================================
+model ContaReceber {
+  id               String      @id @default(cuid())
+  descricao        String
+  fonteRendaId     String      @map("fonte_renda_id")
+  valor            Decimal     @db.Decimal(12, 2)
+  vencimento       DateTime
+  status           String      @default("pendente") // 'pendente', 'recebido', 'vencido'
+  dataRecebimento  DateTime?   @map("data_recebimento")
+  valorRecebido    Decimal?    @map("valor_recebido") @db.Decimal(12, 2)
+  observacoes      String?
+  createdAt        DateTime    @default(now()) @map("created_at")
+  updatedAt        DateTime    @updatedAt @map("updated_at")
+
+  // Relacionamentos
+  fonteRenda FonteRenda @relation(fields: [fonteRendaId], references: [id])
+
+  @@map("contas_receber")
+}
+
+// =============================================
+// METAS MENSAIS
+// =============================================
+model MetaMensal {
+  id         String  @id @default(cuid())
+  ano        Int
+  mes        Int
+  categoria  String  // MATERIAL, SERVIÇOS, ADM, CARRO, MKT, DESP_CASA
+  valorMeta  Decimal @map("valor_meta") @db.Decimal(12, 2)
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  @@unique([ano, mes, categoria])
+  @@map("metas_mensais")
+}
+
+// =============================================
+// FLUXO DE CAIXA DIÁRIO
+// =============================================
+model FluxoCaixaDiario {
+  id                  String    @id @default(cuid())
+  data                DateTime  @unique
+  // RECEITAS
+  hgProd              Decimal   @default(0) @map("hg_prod") @db.Decimal(12, 2)
+  outrasRendas        Decimal   @default(0) @map("outras_rendas") @db.Decimal(12, 2)
+  uautelas            Decimal   @default(0) @db.Decimal(12, 2)
+  matProd             Decimal   @default(0) @map("mat_prod") @db.Decimal(12, 2)
+  // DESPESAS
+  gasCarro            Decimal   @default(0) @map("gas_carro") @db.Decimal(12, 2)
+  uberOutros          Decimal   @default(0) @map("uber_outros") @db.Decimal(12, 2)
+  googleAds           Decimal   @default(0) @map("google_ads") @db.Decimal(12, 2)
+  metaAds             Decimal   @default(0) @map("meta_ads") @db.Decimal(12, 2)
+  googleAdsHgredes    Decimal   @default(0) @map("google_ads_hgredes") @db.Decimal(12, 2)
+  cafeAlmoco          Decimal   @default(0) @map("cafe_almoco") @db.Decimal(12, 2)
+  carroManut          Decimal   @default(0) @map("carro_manut") @db.Decimal(12, 2)
+  proHgPat            Decimal   @default(0) @map("pro_hg_pat") @db.Decimal(12, 2)
+  materiaMensal       Decimal   @default(0) @map("materia_mensal") @db.Decimal(12, 2)
+  carroFinanc         Decimal   @default(0) @map("carro_financ") @db.Decimal(12, 2)
+  // SERVIÇOS
+  everton             Decimal   @default(0) @db.Decimal(12, 2)
+  outros              Decimal   @default(0) @db.Decimal(12, 2)
+  gabriel             Decimal   @default(0) @db.Decimal(12, 2)
+  felipe              Decimal   @default(0) @db.Decimal(12, 2)
+  juber               Decimal   @default(0) @db.Decimal(12, 2)
+  // OBSERVAÇÕES
+  observacoes         String?
+  createdAt           DateTime  @default(now()) @map("created_at")
+  updatedAt           DateTime  @updatedAt @map("updated_at")
+
+  @@map("fluxo_caixa_diario")
+}
+
+// =============================================
+// RELATÓRIOS CONSOLIDADOS
+// =============================================
+model RelatorioMensal {
+  id              String   @id @default(cuid())
+  ano             Int
+  mes             Int
+  categoria       String
+  valorRealizado  Decimal  @map("valor_realizado") @db.Decimal(12, 2)
+  valorMeta       Decimal? @map("valor_meta") @db.Decimal(12, 2)
+  percentualMeta  Decimal? @map("percentual_meta") @db.Decimal(5, 2)
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  @@unique([ano, mes, categoria])
+  @@map("relatorio_mensal")
+}
+
+// =============================================
+// USUÁRIOS (para autenticação)
+// =============================================
+model Usuario {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  nome      String
+  senha     String
+  role      String   @default("operador") // 'admin', 'operador'
+  ativo     Boolean  @default(true)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("usuarios")
+}

@@ -1,0 +1,254 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+/* Configurações base */
+:root {
+  font-family: 'Inter', system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+  
+  color-scheme: dark;
+  color: rgba(255, 255, 255, 0.87);
+  background-color: #111827;
+  
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-text-size-adjust: 100%;
+}
+
+/* Remover outline padrão e aplicar nosso estilo */
+*:focus {
+  outline: none;
+}
+
+/* Scrollbar customizada */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #1f2937;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #4b5563;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #6b7280;
+}
+
+/* Scrollbar para Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #4b5563 #1f2937;
+}
+
+/* Animações customizadas */
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideInLeft {
+  from {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideInUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* Classes utilitárias customizadas */
+.animate-slide-in-right {
+  animation: slideInRight 0.3s ease-out;
+}
+
+.animate-slide-in-left {
+  animation: slideInLeft 0.3s ease-out;
+}
+
+.animate-slide-in-up {
+  animation: slideInUp 0.3s ease-out;
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.5s ease-in;
+}
+
+.animate-pulse-slow {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Estilo para tabelas (similar à planilha Excel) */
+.table-excel {
+  @apply w-full border-collapse;
+}
+
+.table-excel th {
+  @apply bg-gray-700 text-gray-300 font-semibold text-sm px-4 py-3 text-left border-b border-gray-600;
+}
+
+.table-excel td {
+  @apply px-4 py-3 text-sm border-b border-gray-700 text-gray-300;
+}
+
+.table-excel tr:hover {
+  @apply bg-gray-800;
+}
+
+/* Cores específicas por categoria (baseadas na planilha HG) */
+.categoria-material {
+  @apply bg-green-600 text-white;
+}
+
+.categoria-servicos {
+  @apply bg-blue-600 text-white;
+}
+
+.categoria-adm {
+  @apply bg-purple-600 text-white;
+}
+
+.categoria-carro {
+  @apply bg-orange-600 text-white;
+}
+
+.categoria-mkt {
+  @apply bg-pink-600 text-white;
+}
+
+.categoria-casa {
+  @apply bg-indigo-600 text-white;
+}
+
+.categoria-receitas {
+  @apply bg-green-700 text-white;
+}
+
+/* Cards estilo planilha */
+.card-planilha {
+  @apply bg-gray-800 border border-gray-700 rounded-lg shadow-lg;
+}
+
+.card-planilha-header {
+  @apply bg-gray-700 px-6 py-4 border-b border-gray-600;
+}
+
+.card-planilha-content {
+  @apply p-6;
+}
+
+/* Botões personalizados */
+.btn-primary {
+  @apply bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center;
+}
+
+.btn-secondary {
+  @apply bg-gray-600 hover:bg-gray-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center;
+}
+
+.btn-success {
+  @apply bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center;
+}
+
+.btn-danger {
+  @apply bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center;
+}
+
+.btn-outline {
+  @apply border border-gray-600 hover:bg-gray-700 text-gray-300 hover:text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center;
+}
+
+/* Campos de formulário */
+.form-input {
+  @apply w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors;
+}
+
+.form-input-error {
+  @apply border-red-500 focus:ring-red-500;
+}
+
+.form-label {
+  @apply block text-sm font-medium text-gray-300 mb-2;
+}
+
+.form-error {
+  @apply mt-1 text-sm text-red-400;
+}
+
+/* Loading states */
+.loading-spinner {
+  @apply animate-spin rounded-full border-2 border-gray-600 border-t-blue-500;
+}
+
+/* Badges/Tags */
+.badge {
+  @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+}
+
+.badge-success {
+  @apply bg-green-600 text-green-100;
+}
+
+.badge-warning {
+  @apply bg-yellow-600 text-yellow-100;
+}
+
+.badge-error {
+  @apply bg-red-600 text-red-100;
+}
+
+.badge-info {
+  @apply bg-blue-600 text-blue-100;
+}
+
+.badge-gray {
+  @apply bg-gray-600 text-gray-100;
+}
+
+/* Valores monetários */
